@@ -1,0 +1,73 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/task
+   		http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://code.alibabatech.com/schema/dubbo        
+		http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+	
+	<!-- spring整合JMS 生产者(发布者) -->
+	
+	<!-- 定义ReDelivery(重发机制)机制 ，重发时间间隔是100毫秒，最大重发次数是3次  -->  
+    <bean id="activeMQRedeliveryPolicy" class="org.apache.activemq.RedeliveryPolicy">  
+        <!--是否在每次尝试重新发送失败后,增长这个等待时间 -->  
+        <property name="useExponentialBackOff" value="true"></property>  
+        <!--重发次数,默认为6次   这里设置为1次 -->  
+        <property name="maximumRedeliveries" value="1"></property>  
+        <!--重发时间间隔,默认为1秒 -->  
+        <property name="initialRedeliveryDelay" value="1000"></property>  
+        <!--第一次失败后重新发送之前等待500毫秒,第二次失败再等待500 * 2毫秒,这里的2就是value -->  
+        <property name="backOffMultiplier" value="2"></property>  
+        <!--最大传送延迟，只在useExponentialBackOff为true时有效（V5.5），假设首次重连间隔为10ms，倍数为2，那么第二次重连
+        	时间间隔为 20ms，第三次重连时间间隔为40ms，当重连时间间隔大于最大重连时间间隔时，以后每次重连时间间隔都为最大重连时间间隔。 -->  
+        <property name="maximumRedeliveryDelay" value="1000"></property>  
+    </bean> 
+	
+	<!-- 配置JMS服务提供商  ActiveMQ -->
+	<bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<!-- 连接ActiveMQ服务地址 -->
+		<property name="brokerURL" value="tcp://localhost:61616"/>
+		<property name="userName" value="admin"/>
+		<property name="password" value="admin"/>
+		<!-- 引用重发机制 -->
+    	<property name="redeliveryPolicy" ref="activeMQRedeliveryPolicy" />
+	</bean>
+	
+	<!-- 配置ActiveMQ的连接池工厂 -->
+	<bean id="pooledConnectionFactoryBean" class="org.apache.activemq.pool.PooledConnectionFactoryBean">
+		<property name="connectionFactory" ref="activeMQConnectionFactory"/>
+	</bean>
+	
+	<!-- spring管理JMS(ActiveMQ) -->
+	<bean id="singleConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<property name="targetConnectionFactory" ref="pooledConnectionFactoryBean"/>
+	</bean>
+	
+	<!-- spring管理jsmTemplate用于发送消息值ActiveMQ服务 -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<!-- 指定ActiveMQ连接工厂 -->
+		<property name="connectionFactory" ref="singleConnectionFactory"/>
+		<!-- 指定消息队列名称 -->
+		<property name="defaultDestinationName" value="MyMessage"/>
+		<!-- 指定通信方式：消息的订阅与发布 -->
+		<property name="pubSubDomain" value="true"/>
+		<!-- 指定消息签收方式 -->
+		<property name="sessionAcknowledgeMode" value="1" />
+	</bean>
+	
+		
+</beans>

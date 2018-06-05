@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:jms="http://www.springframework.org/schema/jms"
+xmlns:amq="http://activemq.apache.org/schema/core"
+xsi:schemaLocation="http://activemq.apache.org/schema/core
+http://activemq.apache.org/schema/core/activemq-core.xsd
+http://www.springframework.org/schema/jms
+http://www.springframework.org/schema/jms/spring-jms.xsd
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+<amq:connectionFactory id="connectionFactory"  brokerURL=""/>
+<amq:pooledConnectionFactory />
+<amq:queue ></amq:queue>
+<jms:annotation-driven/>
+<jms:listener-container></jms:listener-container>
+
+
+
+
+
+
+
+
+
+
+</beans>
