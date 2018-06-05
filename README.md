@@ -1,0 +1,2 @@
+# ActiveMQ和Spring的简单整合，并实现简单的消息发送和接收
+ActiveMQ SimpleApplication
